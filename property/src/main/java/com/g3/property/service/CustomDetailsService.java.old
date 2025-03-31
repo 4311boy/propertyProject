@@ -1,0 +1,37 @@
+package com.g3.property.service;
+
+
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.core.userdetails.User;
+import com.g3.property.repository.AgentRepository;
+import com.g3.property.entity.Agent;
+import com.g3.property.repository.ApplicationUserInterfaceRepository;
+import com.g3.property.entity.ApplicationUserInterface;
+
+// UserDetailsService is an abstraction 
+// CustomDetailsService just modifies the loadUserByUsername method
+public class CustomDetailsService implements UserDetailsService{
+
+    private ApplicationUserInterfaceRepository userRepository;
+
+    public CustomDetailsService(ApplicationUserInterfaceRepository userRepository) {
+        this.userRepository = userRepository;
+    }
+
+    // UserDetails loadUserByUsername(String username) throws UsernameNotFoundException;
+
+    @Override
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        ApplicationUserInterface appUser = userRepository.findByEmail(email)
+                                                    .orElseThrow(() -> new UsernameNotFoundException("User email not found"));
+            
+        // Convert your ApplicationUserInterface entity to a Spring Security UserDetails object
+        return User.withUsername(appUser.getEmail())
+                    .password(appUser.getPassword()) // encoded password
+                    .roles(appUser.getRole())
+                    .build();
+    }
+    
+}
